@@ -1,0 +1,14 @@
+POST http://localhost:8080/add-person
+Content-Type: application/json
+
+{
+    "firstName": "Test",
+    "lastName": "TheTest",
+    "age": 18,
+    "email": "test@gmail.com"
+}
+
+
+###
+
+GET http://localhost:8080/persons

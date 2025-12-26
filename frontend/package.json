@@ -1,0 +1,12 @@
+{
+  "name": "test-frontend",
+  "version": "1.0.0",
+  "description": "test frontend by rossie",
+  "license": "ISC",
+  "author": "Marchello",
+  "type": "commonjs",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
