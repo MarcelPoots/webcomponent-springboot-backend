@@ -31,4 +31,11 @@ public class PersonController {
         persons.removeIf(person -> person.id() == id);
     }
 
+    @PutMapping("/update-person/{id}")
+    public void updatePerson(@PathVariable int id, @RequestBody Person updated) {
+        persons.replaceAll(p -> p.id() == id ? updated : p);
+    }
+
+
+
 }

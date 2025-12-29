@@ -27,4 +27,15 @@ export class PersonService {
 
     if (!res.ok) throw new Error('Failed to delete person');
   }
+
+  async updatePerson(person) {
+    const res = await fetch(`${this.baseUrl}/update-person/${person.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(person)
+    });
+
+    if (!res.ok) throw new Error('Failed to update person');
+  }
+
 }
