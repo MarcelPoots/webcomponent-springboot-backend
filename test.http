@@ -1,7 +1,7 @@
 POST http://localhost:8080/add-person
 Content-Type: application/json
 
-{
+{   "id": 3,
     "firstName": "Test",
     "lastName": "TheTest",
     "age": 18,

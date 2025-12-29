@@ -17,17 +17,35 @@ class PersonTable extends HTMLElement {
     this.render(data);
   }
 
-  async addPerson() {
-    const id = prompt('Unique ID for the person');
-    const firstName = prompt('First Name');
-    const lastName = prompt('Last Name');
-    const age = prompt('Age');
-    const email = prompt('Email');
+  async addPersonFromForm() {
+    const firstName = this.shadowRoot.querySelector('#firstName').value.trim();
+    const lastName = this.shadowRoot.querySelector('#lastName').value.trim();
+    const age = this.shadowRoot.querySelector('#age').value;
+    const email = this.shadowRoot.querySelector('#email').value;
 
-    if (!firstName || !lastName) return;
+    if (!firstName || !lastName) return alert('First and last name required');
 
-    await this.personService.addPerson({ id,firstName, lastName, age, email });
+    // Generate ID = number of persons + 1
+    const id = this.currentData.length + 1;
+
+    await this.personService.addPerson({
+      id,
+      firstName,
+      lastName,
+      age,
+      email
+    });
+
+    this.closeModal();
     this.load();
+  }
+
+  openModal() {
+    this.shadowRoot.querySelector('.modal').classList.add('open');
+  }
+
+  closeModal() {
+    this.shadowRoot.querySelector('.modal').classList.remove('open');
   }
 
   async deletePerson(id) {
@@ -36,14 +54,8 @@ class PersonTable extends HTMLElement {
     this.load();
   }
 
-  toggleTheme() {
-    this.darkMode = !this.darkMode;
-    this.render(this.currentData);
-  }
-
   render(data) {
     this.currentData = data;
-
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -51,53 +63,18 @@ class PersonTable extends HTMLElement {
           display: block;
           max-width: 900px;
           margin: 2rem auto;
-          background: ${this.darkMode ? '#1e1e1e' : '#ffffff'};
-          color: ${this.darkMode ? '#e5e5e5' : '#1f2937'};
-          border-radius: 12px;
-          padding: 1.5rem;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-          transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .toolbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
         }
 
         button {
-          border: none;
           padding: 0.5rem 0.9rem;
           border-radius: 6px;
+          border: none;
           cursor: pointer;
-          font-size: 0.9rem;
-          transition: 0.2s ease;
         }
 
-        .add {
-          background: #4f46e5;
-          color: white;
-        }
-
-        .add:hover {
-          background: #4338ca;
-        }
-
-        .toggle {
-          background: transparent;
-          color: inherit;
-          border: 1px solid currentColor;
-        }
-
-        .delete {
-          background: #ef4444;
-          color: white;
-        }
-
-        .delete:hover {
-          background: #dc2626;
-        }
+        .primary { background: #4f46e5; color: white; }
+        .danger { background: #ef4444; color: white; }
+        .ghost { background: transparent; border: 1px solid #ccc; }
 
         table {
           width: 100%;
@@ -106,32 +83,61 @@ class PersonTable extends HTMLElement {
         }
 
         th, td {
-          padding: 0.75rem;
+          padding: 0.7rem;
           text-align: left;
         }
 
         th {
-          background: ${this.darkMode ? '#2a2a2a' : '#f3f4f6'};
+          background: #f3f4f6;
         }
 
         tr:nth-child(even) td {
-          background: ${this.darkMode ? '#242424' : '#fafafa'};
+          background: #fafafa;
         }
 
-        tr:hover td {
-          background: ${this.darkMode ? '#2f2f2f' : '#f1f5f9'};
+        /* Modal */
+        .modal {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          display: none;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal.open {
+          display: flex;
+        }
+
+        .modal-content {
+          background: white;
+          padding: 1.5rem;
+          border-radius: 10px;
+          width: 320px;
+        }
+
+        .modal-content h3 {
+          margin-top: 0;
+        }
+
+        .modal-content input {
+          width: 100%;
+          padding: 0.5rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.5rem;
         }
       </style>
 
-      <div class="toolbar">
-        <button class="add">➕ Add Person</button>
-        <button class="toggle">${this.darkMode ? '☀ Light' : '🌙 Dark'}</button>
-      </div>
+      <button class="primary" id="addBtn">➕ Add Person</button>
 
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>First</th>
             <th>Last</th>
             <th>Age</th>
@@ -142,24 +148,38 @@ class PersonTable extends HTMLElement {
         <tbody>
           ${data.map(p => `
             <tr>
-              <td>${p.id}</td>
               <td>${p.firstName}</td>
               <td>${p.lastName}</td>
               <td>${p.age}</td>
               <td>${p.email}</td>
               <td>
-                <button class="delete" data-id="${p.id}">🗑</button>
+                <button class="danger" data-id="${p.id}">🗑</button>
               </td>
             </tr>
           `).join('')}
         </tbody>
       </table>
+
+      <div class="modal">
+        <div class="modal-content">
+          <h3>Add Person</h3>
+          <input id="firstName" placeholder="First name" />
+          <input id="lastName" placeholder="Last name" />
+          <input id="age" placeholder="Age" type="number" />
+          <input id="email" placeholder="Email" />
+          <div class="actions">
+            <button class="ghost" id="cancel">Cancel</button>
+            <button class="primary" id="save">Save</button>
+          </div>
+        </div>
+      </div>
     `;
 
-    this.shadowRoot.querySelector('.add').onclick = () => this.addPerson();
-    this.shadowRoot.querySelector('.toggle').onclick = () => this.toggleTheme();
+    this.shadowRoot.querySelector('#addBtn').onclick = () => this.openModal();
+    this.shadowRoot.querySelector('#cancel').onclick = () => this.closeModal();
+    this.shadowRoot.querySelector('#save').onclick = () => this.addPersonFromForm();
 
-    this.shadowRoot.querySelectorAll('.delete').forEach(btn =>
+    this.shadowRoot.querySelectorAll('.danger').forEach(btn =>
       btn.onclick = () => this.deletePerson(btn.dataset.id)
     );
   }
